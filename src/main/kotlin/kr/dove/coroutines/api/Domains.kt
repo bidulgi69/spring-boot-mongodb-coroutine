@@ -9,7 +9,6 @@ data class Product(
     var name: String,
     var cost: Int = 0,
     var version: Int = 0,
-    var reviews: List<Review>? = null,
     val created: ZonedDateTime? = null,
     val modified: ZonedDateTime? = null
 )

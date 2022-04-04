@@ -26,11 +26,13 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-mongodb-reactive
-	implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:2.6.4")
+	implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
+	testImplementation("org.testcontainers:junit-jupiter:1.16.3")
+	testImplementation("org.testcontainers:mongodb:1.16.3")
 }
 
 tasks.withType<KotlinCompile> {

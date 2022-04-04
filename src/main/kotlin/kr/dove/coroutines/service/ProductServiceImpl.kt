@@ -1,24 +1,19 @@
 package kr.dove.coroutines.service
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kr.dove.coroutines.api.Product
 import kr.dove.coroutines.api.ProductService
-import kr.dove.coroutines.api.Review
 import kr.dove.coroutines.persistence.ProductEntity
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.where
-import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlow
 import reactor.core.publisher.Mono
 import java.util.*
 
@@ -27,27 +22,14 @@ import java.util.*
 class ProductServiceImpl(
     private val reactiveMongoTemplate: ReactiveMongoTemplate,
     private val sequenceGenerator: SequenceGenerator,
-    private val builder: WebClient.Builder
 ): ProductService {
 
-    private val webClient: WebClient? = builder.build()
-
     override suspend fun get(id: Long): Product {
-        val product: Product = reactiveMongoTemplate.find(
+        return reactiveMongoTemplate.find(
             Query.query(where(ProductEntity::productId).`is`(id)), ProductEntity::class.java
         )
             .awaitFirst()
             .mapToApi()
-
-        return product.apply {
-            this.reviews = getClient()
-                .get()
-                .uri("http://localhost:8080/review/$id")
-                .accept(MediaType.APPLICATION_NDJSON)
-                .retrieve()
-                .bodyToFlow<Review>()
-                .toList()
-        }
     }
 
     override suspend fun post(product: Product): Product {
@@ -71,7 +53,6 @@ class ProductServiceImpl(
                 Update().apply {
                     set("name", product.name)
                     set("cost", product.cost)
-                    set("reviews", product.reviews)
                 },
                 FindAndModifyOptions.options()
                     .upsert(true)
@@ -99,6 +80,4 @@ class ProductServiceImpl(
             .flatMap { en -> Mono.just(en.mapToApi()) }
             .asFlow()
     }
-
-    private fun getClient(): WebClient = webClient ?: builder.build()
 }
